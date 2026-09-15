@@ -1,0 +1,120 @@
+﻿version: '3.8'
+
+services:
+  # ============================================
+  # PocketBase - Backend/Database
+  # ============================================
+  pocketbase:
+    build:
+      context: ./apps/pocketbase
+      dockerfile: Dockerfile
+    container_name: conexaobatista-pocketbase
+    restart: unless-stopped
+    volumes:
+      - pocketbase_data:/pb/pb_data
+      - ./apps/pocketbase/pb_hooks:/pb/pb_hooks:ro
+      - ./apps/pocketbase/pb_migrations:/pb/pb_migrations:ro
+    networks:
+      - easypanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pocketbase.rule=Host(pb.conexaobatista.com.br)"
+      - "traefik.http.routers.pocketbase.entrypoints=websecure"
+      - "traefik.http.routers.pocketbase.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pocketbase.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # API - Node.js Express
+  # ============================================
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: conexaobatista-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - CORS_ORIGIN=https://app.conexaobatista.com.br,https://pwa.conexaobatista.com.br,https://pb.conexaobatista.com.br
+      - CURSOS_API_URL=https://cursos.conexaobatista.com.br
+      - CURSOS_API_BRIDGE_SECRET=${CURSOS_API_BRIDGE_SECRET}
+      - CURSOS_ADMIN_API_URL=https://cursos.conexaobatista.com.br
+      - MENTOR_JWT_SECRET=${MENTOR_JWT_SECRET}
+      - MENTOR_REAL_URL=https://cursos.conexaobatista.com.br
+      - MENTOR_ENV=production
+      - MENTOR_PAINEL_SSO_URL=https://api.conexaobatista.com.br/painel
+      - JWT_SECRET=${JWT_SECRET}
+      - PB_SUPERUSER_EMAIL=${PB_SUPERUSER_EMAIL}
+      - PB_SUPERUSER_PASSWORD=${PB_SUPERUSER_PASSWORD}
+    depends_on:
+      - pocketbase
+    networks:
+      - easypanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(pi.conexaobatista.com.br)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api.loadbalancer.server.port=3001"
+
+  # ============================================
+  # Web - React/Vite
+  # ============================================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: conexaobatista-web
+    restart: unless-stopped
+    depends_on:
+      - api
+      - pocketbase
+    networks:
+      - easypanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(pp.conexaobatista.com.br)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
+
+  # ============================================
+  # PWA - React/Vite
+  # ============================================
+  pwa:
+    build:
+      context: ./apps/pwa
+      dockerfile: Dockerfile
+    container_name: conexaobatista-pwa
+    restart: unless-stopped
+    depends_on:
+      - api
+      - pocketbase
+    networks:
+      - easypanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pwa.rule=Host(pwa.conexaobatista.com.br)"
+      - "traefik.http.routers.pwa.entrypoints=websecure"
+      - "traefik.http.routers.pwa.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pwa.loadbalancer.server.port=80"
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  pocketbase_data:
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  easypanel:
+    external: true
+    name: easypanel

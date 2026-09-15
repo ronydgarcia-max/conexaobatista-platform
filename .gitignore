@@ -1,47 +1,49 @@
-# Dependencias
-node_modules/
-
-# Build
-dist/
-
-# Variaveis de ambiente (NAO subir secrets)
+﻿# ============================================
+# Docker & Secrets
+# ============================================
 .env
 .env.local
 .env.*.local
-apps/*/.env
-apps/*/.env.local
 
-# PocketBase - dados (NAO subir banco)
-VPS/pb_data/
-apps/pocketbase/pb_data/
+# ============================================
+# Dependências
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Backups antigos do PocketBase
-apps/pocketbase/pb_data_*/
-apps/pocketbase/pb_data_old_encrypted/
+# ============================================
+# Build
+# ============================================
+dist/
+build/
+.next/
 
-# Binarios e backups do PocketBase
-apps/pocketbase/pocketbase
-apps/pocketbase/pocketbase.exe
-*.tar.gz
+# ============================================
+# Dados do PocketBase
+# ============================================
+pb_data/
+pb_data_old_encrypted/
+pocketbase.log
 
-# Logs
-*.log
+# ============================================
+# IDE
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Vault (credentials)
-vault/
-
-# Notas pessoais
-*.txt
-
-# Scripts Windows locais
-iniciar-tudo.bat
-start-all.ps1
-
+# ============================================
 # OS
+# ============================================
 .DS_Store
 Thumbs.db
 
-# Editor
-.vscode/
-.idea/
-.env.production
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/

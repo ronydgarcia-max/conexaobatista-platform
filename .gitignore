@@ -1,0 +1,47 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+
+# Variaveis de ambiente (NAO subir secrets)
+.env
+.env.local
+.env.*.local
+apps/*/.env
+apps/*/.env.local
+
+# PocketBase - dados (NAO subir banco)
+VPS/pb_data/
+apps/pocketbase/pb_data/
+
+# Backups antigos do PocketBase
+apps/pocketbase/pb_data_*/
+apps/pocketbase/pb_data_old_encrypted/
+
+# Binarios e backups do PocketBase
+apps/pocketbase/pocketbase
+apps/pocketbase/pocketbase.exe
+*.tar.gz
+
+# Logs
+*.log
+
+# Vault (credentials)
+vault/
+
+# Notas pessoais
+*.txt
+
+# Scripts Windows locais
+iniciar-tudo.bat
+start-all.ps1
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+.env.production

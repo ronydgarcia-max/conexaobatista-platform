@@ -1,0 +1,150 @@
+// Relatório de correção 01 — Normalização segura de URLs de slides
+// GET /relatorio-correcao-01-urls-slides/download
+//
+// Documentação em memória (.txt). Acesso restrito a administradores (adminAuth).
+// Não expõe segredos. Não altera backend de cursos, VPS, banco, autenticação
+// ou permissões — apenas registra a correção de frontend.
+
+import logger from '../utils/logger.js';
+
+function montarRelatorio() {
+  const dataHora = new Date().toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  });
+
+  return [
+    '================================================================================',
+    'RELATÓRIO DE CORREÇÃO 01 — NORMALIZAÇÃO SEGURA DE URLs DE SLIDES',
+    'Portal de cursos · Frontend · Erro url.startsWith is not a function',
+    '================================================================================',
+    '',
+    `Data/hora da geração (Brasília): ${dataHora}`,
+    'Número atribuído nesta sequência: 01',
+    'Formato de nomenclatura: "Relatório de correção NN" (pedido do usuário para',
+    'facilitar a identificação do último relatório gerado).',
+    '',
+    '--------------------------------------------------------------------------------',
+    '1. RESUMO EXECUTIVO',
+    '--------------------------------------------------------------------------------',
+    'PROBLEMA: ao abrir uma aula do tipo "slide", o frontend podia receber o campo',
+    'de URL (conteudo_url / material_pdf_url / url) em formatos não-string (objeto',
+    'Cloudinary/API, array, null ou valor inválido). O pdf.js e o fluxo de download',
+    'chamam métodos de string (ex.: startsWith) sobre a URL, gerando o erro',
+    '"url.startsWith is not a function" e quebrando a página da aula.',
+    '',
+    'CORREÇÃO: criada a função genérica extrairUrlSegura() em CursoAulaPage.jsx,',
+    'aplicada a todos os pontos de extração e uso de URL na renderização e no',
+    'download de slides (e demais mídias). A classificação da aula continua',
+    'orientada pelo campo `tipo` do backend (slide | video | imagem | pdf); a',
+    'existência de youtube_id/video_url/url NÃO altera o tipo. Sem URL válida,',
+    'exibe-se "Material de slides indisponível" sem quebrar a página. O botão',
+    '"Baixar slides" só aparece quando há string de URL válida.',
+    '',
+    'Escopo: SOMENTE frontend necessário. Não altera backend, banco de dados,',
+    'autenticação, permissões, dados dos cursos, endpoints, ordem das aulas,',
+    'navegação ou regras de provas.',
+    '',
+    '--------------------------------------------------------------------------------',
+    '2. ARQUIVOS ALTERADOS',
+    '--------------------------------------------------------------------------------',
+    '  - apps/web/src/pages/curso/CursoAulaPage.jsx',
+    '      * Nova função extrairUrlSegura(valor)',
+    '      * materialPdfDaAula / videoUrlDaAula / youtubeIdDaAula / imagemUrlDaAula',
+    '        / conteudoUrlDaAula passam a usar extrairUrlSegura',
+    '      * slideUrl/pdfUrl/videoUrl/imagemUrl/embedUrl revalidados no render',
+    '      * getDocument({ url }) só recebe string normalizada',
+    '      * Fallback UI para slide sem URL; botão Baixar slides condicional',
+    '  - apps/api/src/routes/relatorio-correcao-01-urls-slides.js (este arquivo)',
+    '  - apps/api/src/routes/index.js (registro da rota de download)',
+    '  - apps/web/src/pages/adm/RelatorioAlteracoesPage.jsx (entrada no catálogo)',
+    '',
+    'Nenhum endpoint de cursos, proxy VPS, migração PocketBase, hook, SSO ou',
+    'regra de prova foi modificado.',
+    '',
+    '--------------------------------------------------------------------------------',
+    '3. NORMALIZAÇÃO APLICADA (extrairUrlSegura)',
+    '--------------------------------------------------------------------------------',
+    'Entrada aceita e resultado:',
+    '  - string direta (trim) → string; rejeita "", "null", "undefined",',
+    '    "[object Object]"',
+    '  - number finito → String(number)',
+    '  - URL nativa (instanceof URL) → href',
+    '  - array → primeiro elemento que normaliza com sucesso (recursivo, máx. 3)',
+    '  - objeto → tenta chaves: url, secure_url, secureUrl, href, src, path, link,',
+    '    download_url, downloadUrl, file_url, fileUrl, conteudo_url, conteudoUrl,',
+    '    pdf_url, pdfUrl, material_pdf_url, materialPdfUrl, video_url, videoUrl,',
+    '    imagem_url, imagemUrl, public_url, publicUrl',
+    '  - null / undefined / inválido → "" (string vazia)',
+    '',
+    'Pontos de uso:',
+    '  1) Extração na normalização da aula (conteudo_url, material_pdf_url,',
+    '     video_url, youtube_id, imagem_url/imagem, aliases conteudoUrl/url)',
+    '  2) Campos ativos no render (slideUrl, pdfUrl, videoUrl, imagemUrl, embedUrl)',
+    '  3) Carregamento pdf.js: getDocument({ url: slideUrlSegura }) apenas se',
+    '     typeof string e length > 0; caso contrário mensagem de indisponível',
+    '  4) Âncoras "Baixar slides" / "Material de apoio": href só se string válida',
+    '',
+    '--------------------------------------------------------------------------------',
+    '4. CLASSIFICAÇÃO POR TIPO (PRESERVADA)',
+    '--------------------------------------------------------------------------------',
+    '  tipo=slide     → render slide + download se URL válida',
+    '  tipo=video + video_type=youtube → embed YouTube',
+    '  tipo=video + video_type=upload  → <video> Cloudinary',
+    '  tipo=imagem    → <img>',
+    '  tipo=pdf       → leitor PDF via proxy',
+    'A presença de youtube_id, video_url ou url NÃO muda o tipo da aula.',
+    'Ordem das aulas, navegação "Próxima" e provas (etapa_id === aula.id)',
+    'permanecem exatamente como configurados pelo mentor.',
+    '',
+    '--------------------------------------------------------------------------------',
+    '5. VALIDAÇÕES',
+    '--------------------------------------------------------------------------------',
+    'Item                                                         | Status',
+    '-------------------------------------------------------------+----------------',
+    'Curso 29 — 1ª aula abre como slide sem erro startsWith       | NÃO COMPROVADA',
+    'Botão Baixar slides com URL válida                           | NÃO COMPROVADA',
+    'Aulas vídeo YouTube / upload / imagem não afetadas           | NÃO COMPROVADA',
+    'Estrutura genérica (outros cursos)                           | NÃO COMPROVADA',
+    'Sessão autenticada ao vivo contra VPS no sandbox             | NÃO COMPROVADA',
+    '',
+    'Motivo: validação autenticada ao vivo no navegador não foi executada neste',
+    'ambiente de sandbox. A correção foi aplicada no código-fonte e deve ser',
+    'confirmada no preview/produção pelo administrador (abrir /curso/29/aula e',
+    'demais cursos com aula tipo=slide).',
+    '',
+    'Auditoria estática do código: extrairUrlSegura garante retorno sempre string;',
+    'nenhum getDocument/href recebe valor não-string após a normalização.',
+    '',
+    '--------------------------------------------------------------------------------',
+    '6. O QUE NÃO FOI ALTERADO',
+    '--------------------------------------------------------------------------------',
+    'Backend Express de proxy de cursos, VPS cursos-api, PocketBase, autenticação,',
+    'SSO, matrículas, permissões, endpoints, dados cadastrados, ordem das aulas,',
+    'navegação entre páginas/aulas, regras e posicionamento de provas.',
+    '',
+    '--------------------------------------------------------------------------------',
+    '7. SEGREDOS',
+    '--------------------------------------------------------------------------------',
+    'Nenhum segredo, token ou credencial é exposto neste relatório.',
+    '',
+    '================================================================================',
+    'Fim do Relatório de correção 01',
+    '================================================================================',
+    '',
+  ].join('\n');
+}
+
+export default function relatorioCorrecao01UrlsSlides(req, res) {
+  try {
+    const corpo = montarRelatorio();
+    const nome = 'relatorio-de-correcao-01-urls-slides.txt';
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${nome}"`);
+    res.status(200).send(corpo);
+  } catch (err) {
+    logger.error('Falha ao gerar Relatório de correção 01', { err: err?.message });
+    res.status(500).json({ error: 'Não foi possível gerar o relatório.' });
+  }
+}

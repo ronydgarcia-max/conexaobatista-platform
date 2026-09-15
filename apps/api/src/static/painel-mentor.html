@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel do Mentor | ConexãoCursos</title>
+<style>
+  /* =========================================================
+     IDENTIDADE VISUAL — ConexãoCursos
+     Cores, fonte, bordas e sombras conforme especificado
+     ========================================================= */
+  :root {
+    --azul: #1e3a8a;          /* Cor principal */
+    --laranja: #f59e0b;       /* Cor de destaque */
+    --fundo: #f3f4f6;         /* Fundo da página */
+    --card: #ffffff;          /* Fundo dos cards */
+    --texto: #1f2937;         /* Texto principal */
+    --texto-sec: #6b7280;     /* Texto secundário */
+    --verde: #16a34a;         /* Variação positiva */
+    --vermelho: #dc2626;      /* Variação negativa */
+    --amarelo: #eab308;       /* Status "Em revisão" */
+    --borda: #e5e7eb;         /* Bordas suaves */
+    --raio: 8px;              /* Bordas arredondadas */
+    --sombra: 0 1px 3px rgba(0,0,0,0.1); /* Sombras suaves */
+    --sombra-hover: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--fundo);
+    color: var(--texto);
+    line-height: 1.5;
+  }
+
+  /* =========================================================
+     NAVBAR SUPERIOR
+     ========================================================= */
+  .navbar {
+    background-color: var(--azul);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--sombra);
+  }
+  .navbar-brand { display: flex; align-items: center; gap: 0.6rem; }
+  .logo-cb {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #ffffff; color: var(--azul);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem; letter-spacing: 0.5px;
+  }
+  .navbar-brand span { font-size: 1.15rem; font-weight: 600; }
+
+  .navbar-menu { display: flex; gap: 1.5rem; list-style: none; }
+  .navbar-menu a {
+    color: #ffffff; text-decoration: none; font-size: 0.95rem; opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+  .navbar-menu a:hover { opacity: 1; }
+  .navbar-menu a.mentor-link {
+    color: var(--laranja); font-weight: 700; opacity: 1;
+  }
+
+  .navbar-user { display: flex; align-items: center; gap: 0.6rem; position: relative; }
+  .navbar-user .ola { font-size: 0.9rem; opacity: 0.95; }
+  .avatar-mentor {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--laranja); color: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.95rem;
+  }
+
+  /* ===== Menu dropdown do usuário (avatar) ===== */
+  .user-dropdown-toggle {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: none; border: none; cursor: pointer;
+    color: #fff; font-family: inherit; padding: 0.25rem 0.4rem;
+    border-radius: var(--raio); transition: background 0.15s;
+  }
+  .user-dropdown-toggle:hover { background: rgba(255,255,255,0.12); }
+  .user-dropdown-toggle .seta { font-size: 0.7rem; opacity: 0.85; transition: transform 0.2s; }
+  .user-dropdown-toggle.aberto .seta { transform: rotate(180deg); }
+
+  .user-dropdown {
+    position: absolute; top: calc(100% + 0.5rem); right: 0;
+    background: var(--card); color: var(--texto);
+    border: 1px solid var(--borda); border-radius: var(--raio);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 200px;
+    padding: 0.4rem 0; z-index: 210; display: none;
+  }
+  .user-dropdown.aberto { display: block; }
+  .user-dropdown .cabecalho {
+    padding: 0.7rem 1rem; border-bottom: 1px solid var(--borda);
+  }
+  .user-dropdown .cabecalho .nome { font-weight: 700; font-size: 0.92rem; color: var(--texto); }
+  .user-dropdown .cabecalho .email { font-size: 0.78rem; color: var(--texto-sec); margin-top: 0.15rem; word-break: break-all; }
+  .user-dropdown button.item,
+  .user-dropdown a.item {
+    display: flex; align-items: center; gap: 0.55rem;
+    width: 100%; text-align: left; background: none; border: none;
+    cursor: pointer; font-family: inherit; font-size: 0.88rem;
+    color: var(--texto); padding: 0.6rem 1rem; transition: background 0.15s;
+    text-decoration: none;
+  }
+  .user-dropdown button.item:hover,
+  .user-dropdown a.item:hover { background: var(--fundo); }
+  .user-dropdown .item.sair { color: var(--vermelho); font-weight: 600; }
+
+  /* =========================================================
+     LAYOUT — Sidebar + Conteúdo
+     ========================================================= */
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+
+  .sidebar {
+    width: 250px; background: var(--card);
+    padding: 1.25rem 0; flex-shrink: 0;
+    border-right: 1px solid var(--borda);
+  }
+  .sidebar-menu { list-style: none; display: flex; flex-direction: column; }
+  .sidebar-menu li {
+    padding: 0.85rem 1.5rem; cursor: pointer;
+    display: flex; align-items: center; gap: 0.7rem;
+    color: var(--texto); font-size: 0.95rem;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-menu li .icon { font-size: 1.1rem; }
+  .sidebar-menu li:hover,
+  .sidebar-menu li.active {
+    background: var(--fundo);
+    color: var(--azul);
+    border-left-color: var(--laranja);
+    font-weight: 600;
+  }
+
+  .conteudo { flex: 1; padding: 2rem; overflow-x: hidden; }
+  .conteudo h1 { color: var(--azul); font-size: 1.6rem; }
+  .conteudo .subtitulo { color: var(--texto-sec); margin-top: 0.25rem; margin-bottom: 1.75rem; }
+
+  /* =========================================================
+     CARDS DE ESTATÍSTICAS
+     ========================================================= */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--card); border-radius: var(--raio);
+    box-shadow: var(--sombra); padding: 1.25rem 1.4rem;
+    border-left: 4px solid var(--laranja);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { box-shadow: var(--sombra-hover); transform: translateY(-2px); }
+  .stat-card .titulo {
+    text-transform: uppercase; color: var(--texto-sec);
+    font-size: 0.72rem; letter-spacing: 0.6px; font-weight: 600;
+  }
+  .stat-card .numero {
+    color: var(--azul); font-size: 2rem; font-weight: 700; margin-top: 0.35rem;
+  }
+  .stat-card .variacao { font-size: 0.8rem; margin-top: 0.3rem; font-weight: 600; }
+  .variacao.positiva { color: var(--verde); }
+  .variacao.negativa { color: var(--vermelho); }
+
+  /* =========================================================
+     SEÇÕES / CARDS DE CONTEÚDO
+     ========================================================= */
+  .secao {
+    background: var(--card); border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 1.5rem; margin-bottom: 2rem;
+  }
+  .secao-cabecalho {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;
+  }
+  .secao-cabecalho h2 { color: var(--azul); font-size: 1.2rem; }
+
+  .btn {
+    border: none; cursor: pointer; border-radius: var(--raio);
+    font-size: 0.88rem; font-weight: 600; padding: 0.55rem 1.1rem;
+    transition: filter 0.2s, transform 0.1s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-laranja { background: var(--laranja); color: #ffffff; }
+  .btn-laranja:hover { filter: brightness(1.05); }
+  .btn-borda { background: transparent; color: var(--azul); border: 1.5px solid var(--azul); }
+  .btn-borda:hover { background: var(--azul); color: #ffffff; }
+
+  /* =========================================================
+     LISTA DE CURSOS
+     ========================================================= */
+  .lista-cursos { display: flex; flex-direction: column; gap: 1rem; }
+  .curso-item {
+    border: 1px solid var(--borda); border-radius: var(--raio);
+    padding: 1.1rem 1.25rem; transition: box-shadow 0.2s;
+  }
+  .curso-item:hover { box-shadow: var(--sombra-hover); }
+  .curso-item .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+  .curso-item h3 { color: var(--azul); font-size: 1.05rem; }
+  .curso-item .descricao { color: var(--texto-sec); font-size: 0.88rem; margin-top: 0.25rem; }
+  .badge {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .badge.ativo { background: #dcfce7; color: var(--verde); }
+  .badge.revisao { background: #fef9c3; color: var(--amarelo); }
+  .curso-stats {
+    display: flex; gap: 1.75rem; margin-top: 0.85rem;
+    padding-top: 0.85rem; border-top: 1px solid var(--borda);
+    flex-wrap: wrap;
+  }
+  .curso-stats .stat { display: flex; flex-direction: column; }
+  .curso-stats .stat .label { font-size: 0.7rem; text-transform: uppercase; color: var(--texto-sec); letter-spacing: 0.5px; }
+  .curso-stats .stat .valor { font-size: 1rem; font-weight: 700; color: var(--texto); }
+
+  /* =========================================================
+     LISTA DE ALUNOS
+     ========================================================= */
+  .lista-alunos { display: flex; flex-direction: column; gap: 0.85rem; }
+  .aluno-item {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.85rem 1rem; border: 1px solid var(--borda); border-radius: var(--raio);
+    transition: box-shadow 0.2s;
+  }
+  .aluno-item:hover { box-shadow: var(--sombra-hover); }
+  .avatar-aluno {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: var(--azul); color: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+  }
+  .aluno-info { flex: 1; min-width: 0; }
+  .aluno-info .nome { color: var(--azul); font-weight: 600; font-size: 0.95rem; }
+  .aluno-info .curso { color: var(--texto-sec); font-size: 0.82rem; }
+  .aluno-progresso { width: 160px; flex-shrink: 0; }
+  .barra {
+    width: 100%; height: 8px; background: var(--fundo);
+    border-radius: 999px; overflow: hidden;
+  }
+  .barra .preenchimento {
+    height: 100%; background: var(--laranja); border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+  .aluno-progresso .pct { font-size: 0.75rem; color: var(--texto-sec); margin-top: 0.25rem; text-align: right; }
+
+  /* =========================================================
+     AVALIAÇÕES
+     ========================================================= */
+  .lista-avaliacoes { display: flex; flex-direction: column; gap: 0.85rem; }
+  .avaliacao-item {
+    border: 1px solid var(--borda); border-radius: var(--raio);
+    padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .avaliacao-item .info h3 { color: var(--azul); font-size: 0.98rem; }
+  .avaliacao-item .info p { color: var(--texto-sec); font-size: 0.82rem; margin-top: 0.2rem; }
+  .avaliacao-item .acoes { display: flex; gap: 0.5rem; }
+  .estrelas { color: var(--laranja); font-size: 0.9rem; }
+
+  /* =========================================================
+     MENSAGENS
+     ========================================================= */
+  .lista-mensagens { display: flex; flex-direction: column; gap: 0.75rem; }
+  .mensagem-item {
+    display: flex; gap: 0.9rem; padding: 0.85rem 1rem;
+    border: 1px solid var(--borda); border-radius: var(--raio);
+  }
+  .mensagem-item .corpo { flex: 1; }
+  .mensagem-item .remetente { color: var(--azul); font-weight: 600; font-size: 0.9rem; }
+  .mensagem-item .texto { color: var(--texto-sec); font-size: 0.85rem; margin-top: 0.2rem; }
+  .mensagem-item .data { font-size: 0.72rem; color: var(--texto-sec); }
+
+  /* =========================================================
+     RELATÓRIOS
+     ========================================================= */
+  .relatorio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .relatorio-card {
+    border: 1px solid var(--borda); border-radius: var(--raio); padding: 1.25rem;
+  }
+  .relatorio-card h3 { color: var(--azul); font-size: 1rem; }
+  .relatorio-card .grande { font-size: 1.8rem; font-weight: 700; color: var(--azul); margin: 0.5rem 0; }
+  .relatorio-card p { color: var(--texto-sec); font-size: 0.85rem; }
+
+  /* =========================================================
+     CONFIGURAÇÕES / PERFIL
+     ========================================================= */
+  .form-campo { margin-bottom: 1.1rem; }
+  .form-campo label { display: block; font-size: 0.85rem; color: var(--texto); font-weight: 600; margin-bottom: 0.35rem; }
+  .form-campo input, .form-campo textarea, .form-campo select {
+    width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--borda);
+    border-radius: var(--raio); font-family: inherit; font-size: 0.9rem; color: var(--texto);
+    background: #fff;
+  }
+  .form-campo input:focus, .form-campo textarea:focus, .form-campo select:focus {
+    outline: none; border-color: var(--azul);
+  }
+  .form-campo textarea { resize: vertical; min-height: 80px; }
+
+  /* =========================================================
+     MODAL
+     ========================================================= */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 1rem;
+  }
+  .modal-overlay.ativo { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--raio);
+    width: 100%; max-width: 540px; padding: 1.75rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;
+  }
+  .modal-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+  .modal-cabecalho h2 { color: var(--azul); font-size: 1.2rem; }
+  .modal-fechar { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--texto-sec); line-height: 1; }
+  .modal-fechar:hover { color: var(--texto); }
+
+  /* =========================================================
+     ESTADOS / UTILITÁRIOS
+     ========================================================= */
+  .aviso-indisponivel {
+    font-size: 0.78rem; color: var(--texto-sec); font-style: italic; margin-top: 0.3rem;
+  }
+  .escondido { display: none !important; }
+  .menu-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+  /* =========================================================
+     RESPONSIVIDADE — telas < 768px
+     ========================================================= */
+  @media (max-width: 768px) {
+    .navbar { padding: 0.75rem 1rem; flex-wrap: wrap; }
+    .navbar-menu { display: none; }
+    .menu-toggle { display: block; }
+    .sidebar {
+      position: fixed; left: -260px; top: 60px; bottom: 0;
+      transition: left 0.25s ease; z-index: 150; width: 250px;
+    }
+    .sidebar.aberta { left: 0; }
+    .conteudo { padding: 1.25rem; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .relatorio-grid { grid-template-columns: 1fr; }
+    .aluno-progresso { width: 100px; }
+    .navbar-user .ola { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     NAVBAR SUPERIOR
+     ========================================================= -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="logo-cb">CB</div>
+    <span>ConexãoCursos</span>
+  </div>
+  <ul class="navbar-menu">
+    <li><a href="#" data-nav="dashboard">Home</a></li>
+    <li><a href="#" data-nav="cursos">Cursos</a></li>
+    <li><a href="#" data-nav="meus-cursos">Meus Cursos</a></li>
+    <li><a href="#" data-nav="alunos">Área do aluno</a></li>
+    <li><a href="#" class="mentor-link" data-nav="dashboard">Área do mentor</a></li>
+  </ul>
+  <div class="navbar-user" id="navbarUser">
+    <span class="ola" id="olaMentor">Olá, Mentor</span>
+    <button class="user-dropdown-toggle" id="userDropdownToggle" aria-label="Menu do usuário" aria-expanded="false">
+      <div class="avatar-mentor" id="avatarMentor">M</div>
+      <span class="seta">▼</span>
+    </button>
+    <div class="user-dropdown" id="userDropdown" role="menu">
+      <div class="cabecalho">
+        <div class="nome" id="dropdownNome">Mentor</div>
+        <div class="email" id="dropdownEmail"></div>
+      </div>
+      <a class="item" role="menuitem" data-nav="perfil">⚙️ Perfil</a>
+      <a class="item" role="menuitem" data-nav="configuracoes">⚙️ Configurações</a>
+      <button class="item sair" role="menuitem" id="btnSair">🚪 Sair</button>
+    </div>
+  </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
+</nav>
+
+<div class="layout">
+  <!-- =========================================================
+       SIDEBAR ESQUERDA
+       ========================================================= -->
+  <aside class="sidebar" id="sidebar">
+    <ul class="sidebar-menu">
+      <li class="active" data-secao="dashboard"><span class="icon">📊</span> Dashboard</li>
+      <li data-secao="meus-cursos"><span class="icon">📚</span> Meus Cursos</li>
+      <li data-secao="alunos"><span class="icon">👥</span> Alunos</li>
+      <li data-secao="avaliacoes"><span class="icon">📝</span> Avaliações</li>
+      <li data-secao="mensagens"><span class="icon">💬</span> Mensagens</li>
+      <li data-secao="relatorios"><span class="icon">📈</span> Relatórios</li>
+      <li data-secao="configuracoes"><span class="icon">⚙️</span> Configurações</li>
+      <li data-secao="perfil"><span class="icon">👤</span> Perfil</li>
+    </ul>
+  </aside>
+
+  <!-- =========================================================
+       ÁREA PRINCIPAL
+       ========================================================= -->
+  <main class="conteudo">
+
+    <!-- ====== SEÇÃO: DASHBOARD ====== -->
+    <section id="secao-dashboard" class="secao-ativa">
+      <h1>Bem-vindo ao Painel do Mentor</h1>
+      <p class="subtitulo">Gerencie seus cursos e acompanhe o progresso dos seus alunos</p>
+
+      <!-- 4 cards de estatísticas -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="titulo">Cursos Ativos</div>
+          <div class="numero" id="stat-cursos-ativos">0</div>
+          <div class="variacao positiva" id="var-cursos-ativos">+2 este mês</div>
+        </div>
+        <div class="stat-card">
+          <div class="titulo">Total de Alunos</div>
+          <div class="numero" id="stat-total-alunos">0</div>
+          <div class="variacao positiva" id="var-total-alunos">+18 esta semana</div>
+        </div>
+        <div class="stat-card">
+          <div class="titulo">Taxa de Conclusão</div>
+          <div class="numero" id="stat-taxa-conclusao">0%</div>
+          <div class="variacao positiva" id="var-taxa-conclusao">+5% no trimestre</div>
+        </div>
+        <div class="stat-card">
+          <div class="titulo">Avaliações Pendentes</div>
+          <div class="numero" id="stat-avaliacoes-pendentes">0</div>
+          <div class="variacao negativa" id="var-avaliacoes-pendentes">-3 desde ontem</div>
+        </div>
+      </div>
+
+      <!-- Meus Cursos (resumo no dashboard) -->
+      <div class="secao">
+        <div class="secao-cabecalho">
+          <h2>Meus Cursos</h2>
+          <button class="btn btn-laranja" id="btn-novo-curso-dashboard">+ Novo Curso</button>
+        </div>
+        <div class="lista-cursos" id="lista-cursos-dashboard"></div>
+      </div>
+
+      <!-- Alunos Recentes -->
+      <div class="secao">
+        <div class="secao-cabecalho">
+          <h2>Alunos Recentes</h2>
+          <button class="btn btn-borda" data-nav="alunos">Ver Todos</button>
+        </div>
+        <div class="lista-alunos" id="lista-alunos-dashboard"></div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: MEUS CURSOS ====== -->
+    <section id="secao-meus-cursos" class="escondido">
+      <h1>Meus Cursos</h1>
+      <p class="subtitulo">Gerencie todos os cursos que você publicou na plataforma</p>
+      <div class="secao">
+        <div class="secao-cabecalho">
+          <h2>Cursos Publicados</h2>
+          <button class="btn btn-laranja" id="btn-novo-curso">+ Novo Curso</button>
+        </div>
+        <div class="lista-cursos" id="lista-cursos"></div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: ALUNOS ====== -->
+    <section id="secao-alunos" class="escondido">
+      <h1>Alunos</h1>
+      <p class="subtitulo">Acompanhe o progresso de cada aluno matriculado</p>
+      <div class="secao">
+        <div class="secao-cabecalho"><h2>Todos os Alunos</h2></div>
+        <div class="lista-alunos" id="lista-alunos"></div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: AVALIAÇÕES ====== -->
+    <section id="secao-avaliacoes" class="escondido">
+      <h1>Avaliações</h1>
+      <p class="subtitulo">Revise as atividades enviadas pelos seus alunos</p>
+      <div class="secao">
+        <div class="secao-cabecalho"><h2>Avaliações Pendentes</h2></div>
+        <div class="lista-avaliacoes" id="lista-avaliacoes"></div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: MENSAGENS ====== -->
+    <section id="secao-mensagens" class="escondido">
+      <h1>Mensagens</h1>
+      <p class="subtitulo">Conversas recentes com seus alunos</p>
+      <div class="secao">
+        <div class="secao-cabecalho"><h2>Caixa de Entrada</h2></div>
+        <div class="lista-mensagens" id="lista-mensagens"></div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: RELATÓRIOS ====== -->
+    <section id="secao-relatorios" class="escondido">
+      <h1>Relatórios</h1>
+      <p class="subtitulo">Indicadores de desempenho dos seus cursos</p>
+      <div class="relatorio-grid">
+        <div class="relatorio-card">
+          <h3>Engajamento médio</h3>
+          <div class="grande" id="rel-engajamento">0%</div>
+          <p>Tempo médio de permanência dos alunos nos cursos.</p>
+        </div>
+        <div class="relatorio-card">
+          <h3>Receita estimada (mês)</h3>
+          <div class="grande" id="rel-receita">R$ 0</div>
+          <p>Soma das matrículas ativas no período atual.</p>
+        </div>
+        <div class="relatorio-card">
+          <h3>Novas matrículas</h3>
+          <div class="grande" id="rel-matriculas">0</div>
+          <p>Alunos que iniciaram nos últimos 30 dias.</p>
+        </div>
+        <div class="relatorio-card">
+          <h3>Nota média dos cursos</h3>
+          <div class="grande" id="rel-nota">0.0</div>
+          <p>Média das avaliações deixadas pelos alunos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: CONFIGURAÇÕES ====== -->
+    <section id="secao-configuracoes" class="escondido">
+      <h1>Configurações</h1>
+      <p class="subtitulo">Ajuste as preferências da sua conta de mentor</p>
+      <div class="secao" style="max-width:560px;">
+        <div class="form-campo">
+          <label for="cfg-notif">Notificações por e-mail</label>
+          <select id="cfg-notif">
+            <option value="sim">Sim — receber avisos de novas matrículas e avaliações</option>
+            <option value="nao">Não — não receber notificações</option>
+          </select>
+        </div>
+        <div class="form-campo">
+          <label for="cfg-idioma">Idioma do painel</label>
+          <select id="cfg-idioma">
+            <option value="pt-BR">Português (Brasil)</option>
+            <option value="es">Espanhol</option>
+            <option value="en">Inglês</option>
+          </select>
+        </div>
+        <div class="form-campo">
+          <label for="cfg-fuso">Fuso horário</label>
+          <select id="cfg-fuso">
+            <option value="america-sp">América/São_Paulo (GMT-3)</option>
+            <option value="america-manaus">América/Manaus (GMT-4)</option>
+            <option value="america-belem">América/Belém (GMT-3)</option>
+          </select>
+        </div>
+        <button class="btn btn-laranja" onclick="salvarConfiguracoes()">Salvar Configurações</button>
+      </div>
+    </section>
+
+    <!-- ====== SEÇÃO: PERFIL ====== -->
+    <section id="secao-perfil" class="escondido">
+      <h1>Perfil</h1>
+      <p class="subtitulo">Suas informações públicas como mentor</p>
+      <div class="secao" style="max-width:560px;">
+        <div class="form-campo">
+          <label for="pf-nome">Nome completo</label>
+          <input type="text" id="pf-nome" value="Mentor Conexão" />
+        </div>
+        <div class="form-campo">
+          <label for="pf-email">E-mail</label>
+          <input type="email" id="pf-email" value="mentor@conexaocursos.com.br" />
+        </div>
+        <div class="form-campo">
+          <label for="pf-bio">Biografia</label>
+          <textarea id="pf-bio">Mentor dedicado à formação de membros da rede Conexão Batista.</textarea>
+        </div>
+        <div class="form-campo">
+          <label for="pf-area">Área de atuação</label>
+          <input type="text" id="pf-area" value="Teologia e Liderança" />
+        </div>
+        <button class="btn btn-laranja" onclick="salvarPerfil()">Salvar Perfil</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- =========================================================
+     MODAL — Novo Curso
+     ========================================================= -->
+<div class="modal-overlay" id="modal-curso">
+  <div class="modal">
+    <div class="modal-cabecalho">
+      <h2>Novo Curso</h2>
+      <button class="modal-fechar" id="modal-fechar" aria-label="Fechar">&times;</button>
+    </div>
+    <form id="form-novo-curso">
+      <div class="form-campo">
+        <label for="curso-titulo">Título</label>
+        <input type="text" id="curso-titulo" required placeholder="Ex.: Introdução à Liderança Cristã" />
+      </div>
+      <div class="form-campo">
+        <label for="curso-categoria">Categoria</label>
+        <select id="curso-categoria" required>
+          <option value="">Selecione...</option>
+          <option value="Teologia">Teologia</option>
+          <option value="Liderança">Liderança</option>
+          <option value="Evangelismo">Evangelismo</option>
+          <option value="Família">Família</option>
+          <option value="Música">Música</option>
+          <option value="Tecnologia">Tecnologia</option>
+        </select>
+      </div>
+      <div class="form-campo">
+        <label for="curso-carga">Carga horária (horas)</label>
+        <input type="number" id="curso-carga" min="1" required placeholder="Ex.: 20" />
+      </div>
+      <div class="form-campo">
+        <label for="curso-preco">Preço (R$)</label>
+        <input type="number" id="curso-preco" min="0" step="0.01" required placeholder="Ex.: 99.90" />
+      </div>
+      <div class="form-campo">
+        <label for="curso-descricao">Descrição</label>
+        <textarea id="curso-descricao" required placeholder="Descreva o conteúdo e os objetivos do curso"></textarea>
+      </div>
+      <div class="form-campo">
+        <label for="curso-imagem">URL da imagem</label>
+        <input type="url" id="curso-imagem" placeholder="https://..." />
+      </div>
+      <button type="submit" class="btn btn-laranja">Publicar Curso</button>
+    </form>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   JAVASCRIPT — Painel do Mentor (ConexãoCursos)
+   HTML + CSS + JS puro, sem frameworks externos.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   DADOS DE EXEMPLO (MOCK)
+   Usados quando a API não responder (teste/demonstração).
+   --------------------------------------------------------- */
+var MOCK = {
+  dashboard: {
+    cursosAtivos: 4,
+    totalAlunos: 127,
+    taxaConclusao: 78,
+    avaliacoesPendentes: 5
+  },
+  cursos: [
+    { id: 1, titulo: "Introdução à Liderança Cristã", descricao: "Fundamentos bíblicos para liderar com sabedoria e serviço.", status: "ativo", categoria: "Liderança", preco: 99.90, alunos: 42, conclusao: 82, nota: 4.8 },
+    { id: 2, titulo: "Evangelismo na Prática", descricao: "Técnicas e estratégias para compartilhar a fé no dia a dia.", status: "ativo", categoria: "Evangelismo", preco: 79.90, alunos: 35, conclusao: 75, nota: 4.6 },
+    { id: 3, titulo: "Teologia Sistemática Básica", descricao: "Panorama das principais doutrinas cristãs.", status: "revisao", categoria: "Teologia", preco: 129.90, alunos: 0, conclusao: 0, nota: 0 },
+    { id: 4, titulo: "Música e Adoração", descricao: "Princípios de música congregacional e adoração.", status: "ativo", categoria: "Música", preco: 59.90, alunos: 50, conclusao: 88, nota: 4.9 }
+  ],
+  alunos: [
+    { id: 1, nome: "João Silva", curso_titulo: "Introdução à Liderança Cristã", progresso: 85, matriculado_em: "2026-07-15" },
+    { id: 2, nome: "Maria Oliveira", curso_titulo: "Evangelismo na Prática", progresso: 60, matriculado_em: "2026-07-20" },
+    { id: 3, nome: "Pedro Santos", curso_titulo: "Música e Adoração", progresso: 92, matriculado_em: "2026-06-30" },
+    { id: 4, nome: "Ana Costa", curso_titulo: "Introdução à Liderança Cristã", progresso: 45, matriculado_em: "2026-08-01" },
+    { id: 5, nome: "Lucas Ferreira", curso_titulo: "Música e Adoração", progresso: 30, matriculado_em: "2026-08-05" }
+  ],
+  avaliacoes: [
+    { id: 1, aluno: "João Silva", curso: "Introdução à Liderança Cristã", atividade: "Trabalho Final - Módulo 3", nota: null },
+    { id: 2, aluno: "Maria Oliveira", curso: "Evangelismo na Prática", atividade: "Resumo - Módulo 2", nota: null },
+    { id: 3, aluno: "Ana Costa", curso: "Introdução à Liderança Cristã", atividade: "Apresentação - Módulo 1", nota: null }
+  ],
+  mensagens: [
+    { id: 1, remetente: "João Silva", texto: "Professor, tenho uma dúvida sobre o Módulo 3.", data: "17/08/2026" },
+    { id: 2, remetente: "Maria Oliveira", texto: "Obrigada pelo retorno! Vou revisar o material.", data: "16/08/2026" },
+    { id: 3, remetente: "Pedro Santos", texto: "Quando estará disponível o próximo módulo?", data: "15/08/2026" }
+  ],
+  relatorios: {
+    engajamento: 84,
+    receita: 4875.50,
+    matriculas: 18,
+    nota: 4.7
+  }
+};
+
+/* ---------------------------------------------------------
+   CONFIGURAÇÃO DA API
+   --------------------------------------------------------- */
+// Base da API. No ambiente da VPS (api.conexaobatista.com.br) as rotas
+// /mentor/* estão na RAIZ (sem prefixo). No site Horizons (preview) usamos
+// o proxy /hcgi/api. O ajuste é automático conforme a origem onde o painel
+// é servido — assim o painel funciona tanto na VPS quanto no site.
+var API_BASE = "/hcgi/api";
+try {
+  if (window.location.hostname.indexOf("conexaobatista") !== -1) {
+    API_BASE = ""; // VPS: rotas /mentor/* na raiz
+  }
+} catch (e) {}
+var TOKEN_KEY = "token";
+
+/* Recupera o token JWT do localStorage */
+function obterToken() {
+  try { return localStorage.getItem(TOKEN_KEY) || null; }
+  catch (e) { return null; }
+}
+
+/* ---------------------------------------------------------
+   CAPTURA DO TOKEN SSO A PARTIR DA URL (?token=<TOKEN_SSO>)
+   Quando o mentor acessa o painel via redirecionamento SSO
+   (https://api.conexaobatista.com.br/sso?token=<TOKEN_SSO>),
+   o token vem na query string — e não no localStorage. Sem
+   isto, as chamadas /mentor/dashboard saem sem Authorization
+   e retornam 401. Aqui extraímos o token da URL, persistimos
+   no localStorage e o usamos em todas as chamadas autenticadas.
+   --------------------------------------------------------- */
+function capturarTokenDaUrl() {
+  try {
+    var qs = window.location.search || "";
+    var params = new URLSearchParams(qs);
+    var tokenUrl = params.get("token");
+    if (tokenUrl) {
+      // Persiste para que as próximas chamadas (e recargas) usem o mesmo token.
+      try { localStorage.setItem(TOKEN_KEY, tokenUrl); } catch (e) {}
+      return tokenUrl;
+    }
+  } catch (e) {
+    // URLSearchParams pode não existir em navegadores antigos — fallback manual.
+    try {
+      var match = String(window.location.search || "").match(/[?&]token=([^&]+)/);
+      if (match && match[1]) {
+        var tokenManual = decodeURIComponent(match[1]);
+        try { localStorage.setItem(TOKEN_KEY, tokenManual); } catch (e2) {}
+        return tokenManual;
+      }
+    } catch (e2) {}
+  }
+  return null;
+}
+
+/* ---------------------------------------------------------
+   DECODIFICAÇÃO DO JWT (apenas o payload, sem validar assinatura)
+   O token SSO gerado por /mentor-sso-token (HS256) tem o payload:
+     { pocketbase_id, email, nome, role="mentor", destino="mentor",
+       iat, exp }
+   O campo "nome" contém o nome completo do usuário. Aqui extraímos
+   o payload decodificando o segmento do meio (base64url) para
+   preencher o header ("Olá, PrimeiroNome") e o avatar (inicial).
+   --------------------------------------------------------- */
+function decodificarJWT(token) {
+  if (!token) return null;
+  try {
+    var partes = String(token).split(".");
+    if (partes.length < 2) return null;
+    var payloadB64 = partes[1];
+    // Converte base64url -> base64 padrão e adiciona padding.
+    var base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4 !== 0) base64 += "=";
+    // atob decodifica para uma string binária; tratamos como UTF-8.
+    var binario = atob(base64);
+    // Monta a string UTF-8 corretamente (nomes com acentos).
+    var bytes = [];
+    for (var i = 0; i < binario.length; i++) bytes.push(binario.charCodeAt(i));
+    var json = decodeURIComponent(
+      String.fromCharCode.apply(null, bytes)
+        .split("")
+        .map(function (c) { return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2); })
+        .join("")
+    );
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+}
+
+/* Extrai o primeiro nome a partir do nome completo. */
+function primeiroNome(nomeCompleto) {
+  if (!nomeCompleto) return "";
+  var n = String(nomeCompleto).trim();
+  if (!n) return "";
+  return n.split(/\s+/)[0];
+}
+
+/* ---------------------------------------------------------
+   ATUALIZAÇÃO DO HEADER COM DADOS DO JWT
+   Lê o token (URL ou localStorage), decodifica o payload e
+   preenche "Olá, PrimeiroNome", a inicial do avatar e o menu
+   dropdown (nome + e-mail). Se não houver token/payload, mantém
+   o estado padrão ("Olá, Mentor" / avatar "M").
+   --------------------------------------------------------- */
+function atualizarHeader() {
+  var token = obterToken();
+  var payload = decodificarJWT(token);
+
+  var elOla = document.getElementById("olaMentor");
+  var elAvatar = document.getElementById("avatarMentor");
+  var elDropNome = document.getElementById("dropdownNome");
+  var elDropEmail = document.getElementById("dropdownEmail");
+
+  if (!payload) {
+    // Sem token válido — mantém o padrão.
+    if (elOla) elOla.textContent = "Olá, Mentor";
+    if (elAvatar) elAvatar.textContent = "M";
+    if (elDropNome) elDropNome.textContent = "Mentor";
+    if (elDropEmail) elDropEmail.textContent = "";
+    return;
+  }
+
+  var nome = payload.nome || payload.name || payload.full_name || "";
+  var email = payload.email || "";
+  var pNome = primeiroNome(nome) || "Mentor";
+  var inicial = pNome.charAt(0).toUpperCase() || "M";
+
+  if (elOla) elOla.textContent = "Olá, " + pNome;
+  if (elAvatar) elAvatar.textContent = inicial;
+  if (elDropNome) elDropNome.textContent = nome || pNome;
+  if (elDropEmail) elDropEmail.textContent = email;
+
+  // Pré-preenche a seção Perfil com os dados do JWT.
+  var pfNome = document.getElementById("pf-nome");
+  var pfEmail = document.getElementById("pf-email");
+  if (pfNome && nome) pfNome.value = nome;
+  if (pfEmail && email) pfEmail.value = email;
+}
+
+/* ---------------------------------------------------------
+   MENU DROPDOWN DO USUÁRIO (avatar)
+   Abre/fecha ao clicar no avatar; fecha ao clicar fora ou em
+   um item. Itens "Perfil" e "Configurações" navegam via SPA;
+   "Sair" limpa o token e redireciona para o login.
+   --------------------------------------------------------- */
+function alternarDropdown() {
+  var toggle = document.getElementById("userDropdownToggle");
+  var menu = document.getElementById("userDropdown");
+  if (!toggle || !menu) return;
+  var aberto = menu.classList.toggle("aberto");
+  toggle.classList.toggle("aberto", aberto);
+  toggle.setAttribute("aria-expanded", aberto ? "true" : "false");
+}
+function fecharDropdown() {
+  var toggle = document.getElementById("userDropdownToggle");
+  var menu = document.getElementById("userDropdown");
+  if (menu) menu.classList.remove("aberto");
+  if (toggle) {
+    toggle.classList.remove("aberto");
+    toggle.setAttribute("aria-expanded", "false");
+  }
+}
+
+/* Sair — limpa o token SSO e redireciona para o login do site. */
+function sairPainel() {
+  fecharDropdown();
+  try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  // Redireciona para o login do Conexão Batista.
+  window.location.href = "/login";
+}
+
+/* Requisição autenticada (envia Bearer token). Retorna JSON ou lança erro. */
+async function apiGet(caminho) {
+  var token = obterToken();
+  var headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = "Bearer " + token;
+
+  var resposta = await fetch(API_BASE + caminho, { method: "GET", headers: headers });
+
+  if (resposta.status === 401) {
+    // Token ausente ou inválido — redireciona para o login.
+    window.location.href = "/login";
+    throw new Error("Não autorizado.");
+  }
+  if (!resposta.ok) throw new Error("Erro " + resposta.status);
+  return resposta.json();
+}
+
+/* POST autenticado (usado no formulário de novo curso). */
+async function apiPost(caminho, dados) {
+  var token = obterToken();
+  var headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = "Bearer " + token;
+
+  var resposta = await fetch(API_BASE + caminho, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(dados)
+  });
+
+  if (resposta.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Não autorizado.");
+  }
+  if (!resposta.ok) throw new Error("Erro " + resposta.status);
+  return resposta.json();
+}
+
+/* ---------------------------------------------------------
+   UTILITÁRIOS
+   --------------------------------------------------------- */
+
+/* Formata data ISO (yyyy-mm-dd) para padrão brasileiro dd/mm/aaaa */
+function formatarDataBR(iso) {
+  if (!iso) return "";
+  var partes = String(iso).split("T")[0].split("-");
+  if (partes.length !== 3) return iso;
+  return partes[2] + "/" + partes[1] + "/" + partes[0];
+}
+
+/* Gera iniciais a partir do nome (ex.: "João Silva" -> "JS") */
+function gerarIniciais(nome) {
+  if (!nome) return "?";
+  var partes = nome.trim().split(/\s+/);
+  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+}
+
+/* Escapa HTML para evitar injeção ao inserir texto dinâmico */
+function escaparHTML(texto) {
+  if (texto === null || texto === undefined) return "";
+  return String(texto)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — DASHBOARD (4 cards)
+   --------------------------------------------------------- */
+function renderizarDashboard(dados) {
+  var d = dados || MOCK.dashboard;
+  document.getElementById("stat-cursos-ativos").textContent = d.cursosAtivos ?? 0;
+  document.getElementById("stat-total-alunos").textContent = d.totalAlunos ?? 0;
+  document.getElementById("stat-taxa-conclusao").textContent = (d.taxaConclusao ?? 0) + "%";
+  document.getElementById("stat-avaliacoes-pendentes").textContent = d.avaliacoesPendentes ?? 0;
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — CURSOS
+   --------------------------------------------------------- */
+function renderizarCursos(cursos, contenedorId) {
+  var lista = cursos || MOCK.cursos;
+  var cont = document.getElementById(contenedorId);
+  if (!cont) return;
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = '<p class="aviso-indisponivel">Nenhum curso publicado ainda.</p>';
+    return;
+  }
+
+  var html = "";
+  for (var i = 0; i < lista.length; i++) {
+    var c = lista[i];
+    var statusClasse = c.status === "ativo" ? "ativo" : "revisao";
+    var statusLabel = c.status === "ativo" ? "Ativo" : "Em revisão";
+    html +=
+      '<div class="curso-item">' +
+        '<div class="topo">' +
+          '<div>' +
+            '<h3>' + escaparHTML(c.titulo) + '</h3>' +
+            '<p class="descricao">' + escaparHTML(c.descricao) + '</p>' +
+          '</div>' +
+          '<span class="badge ' + statusClasse + '">' + statusLabel + '</span>' +
+        '</div>' +
+        '<div class="curso-stats">' +
+          '<div class="stat"><span class="label">Alunos</span><span class="valor">' + (c.alunos ?? 0) + '</span></div>' +
+          '<div class="stat"><span class="label">Conclusão</span><span class="valor">' + (c.conclusao ?? 0) + '%</span></div>' +
+          '<div class="stat"><span class="label">Nota</span><span class="valor">' + (c.nota ? c.nota.toFixed(1) : "—") + '</span></div>' +
+        '</div>' +
+      '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — ALUNOS
+   --------------------------------------------------------- */
+function renderizarAlunos(alunos, contenedorId, limite) {
+  var lista = alunos || MOCK.alunos;
+  var cont = document.getElementById(contenedorId);
+  if (!cont) return;
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = '<p class="aviso-indisponivel">Nenhum aluno matriculado.</p>';
+    return;
+  }
+
+  if (limite) lista = lista.slice(0, limite);
+
+  var html = "";
+  for (var i = 0; i < lista.length; i++) {
+    var a = lista[i];
+    var prog = a.progresso ?? 0;
+    html +=
+      '<div class="aluno-item">' +
+        '<div class="avatar-aluno">' + escaparHTML(gerarIniciais(a.nome)) + '</div>' +
+        '<div class="aluno-info">' +
+          '<div class="nome">' + escaparHTML(a.nome) + '</div>' +
+          '<div class="curso">' + escaparHTML(a.curso_titulo) + ' · desde ' + formatarDataBR(a.matriculado_em) + '</div>' +
+        '</div>' +
+        '<div class="aluno-progresso">' +
+          '<div class="barra"><div class="preenchimento" style="width:' + prog + '%"></div></div>' +
+          '<div class="pct">' + prog + '%</div>' +
+        '</div>' +
+      '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — AVALIAÇÕES
+   --------------------------------------------------------- */
+function renderizarAvaliacoes(avaliacoes) {
+  var lista = avaliacoes || MOCK.avaliacoes;
+  var cont = document.getElementById("lista-avaliacoes");
+  if (!cont) return;
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = '<p class="aviso-indisponivel">Nenhuma avaliação pendente. 🎉</p>';
+    return;
+  }
+
+  var html = "";
+  for (var i = 0; i < lista.length; i++) {
+    var av = lista[i];
+    html +=
+      '<div class="avaliacao-item">' +
+        '<div class="info">' +
+          '<h3>' + escaparHTML(av.atividade) + '</h3>' +
+          '<p>' + escaparHTML(av.aluno) + ' · ' + escaparHTML(av.curso) + '</p>' +
+        '</div>' +
+        '<div class="acoes">' +
+          '<button class="btn btn-laranja" onclick="alert(\'Avaliar: ' + escaparHTML(av.atividade).replace(/'/g, "\\'") + '\')">Avaliar</button>' +
+        '</div>' +
+      '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — MENSAGENS
+   --------------------------------------------------------- */
+function renderizarMensagens(mensagens) {
+  var lista = mensagens || MOCK.mensagens;
+  var cont = document.getElementById("lista-mensagens");
+  if (!cont) return;
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = '<p class="aviso-indisponivel">Nenhuma mensagem recebida.</p>';
+    return;
+  }
+
+  var html = "";
+  for (var i = 0; i < lista.length; i++) {
+    var m = lista[i];
+    html +=
+      '<div class="mensagem-item">' +
+        '<div class="avatar-aluno">' + escaparHTML(gerarIniciais(m.remetente)) + '</div>' +
+        '<div class="corpo">' +
+          '<div class="remetente">' + escaparHTML(m.remetente) + ' <span class="data">· ' + escaparHTML(m.data) + '</span></div>' +
+          '<div class="texto">' + escaparHTML(m.texto) + '</div>' +
+        '</div>' +
+      '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+/* ---------------------------------------------------------
+   RENDERIZAÇÃO — RELATÓRIOS
+   --------------------------------------------------------- */
+function renderizarRelatorios(dados) {
+  var r = dados || MOCK.relatorios;
+  document.getElementById("rel-engajamento").textContent = (r.engajamento ?? 0) + "%";
+  document.getElementById("rel-receita").textContent = "R$ " + Number(r.receita ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  document.getElementById("rel-matriculas").textContent = r.matriculas ?? 0;
+  var elNota = document.getElementById("rel-nota");
+  if (elNota) elNota.textContent = (r.nota ?? 0).toFixed(1);
+}
+
+/* ---------------------------------------------------------
+   CARREGAMENTO DE DADOS DA API
+   Busca os endpoints e preenche as seções. Em caso de erro,
+   usa os dados MOCK e exibe aviso discreto.
+   --------------------------------------------------------- */
+async function carregarDados() {
+  // Dashboard
+  try {
+    var dash = await apiGet("/mentor/dashboard");
+    renderizarDashboard(dash);
+  } catch (e) {
+    renderizarDashboard(MOCK.dashboard);
+    mostrarAvisoDisponibilidade();
+  }
+
+  // Cursos
+  try {
+    var cursos = await apiGet("/mentor/cursos");
+    renderizarCursos(cursos, "lista-cursos");
+    renderizarCursos(cursos, "lista-cursos-dashboard");
+  } catch (e) {
+    renderizarCursos(MOCK.cursos, "lista-cursos");
+    renderizarCursos(MOCK.cursos, "lista-cursos-dashboard");
+    mostrarAvisoDisponibilidade();
+  }
+
+  // Alunos
+  try {
+    var alunos = await apiGet("/mentor/alunos");
+    renderizarAlunos(alunos, "lista-alunos");
+    renderizarAlunos(alunos, "lista-alunos-dashboard", 5);
+  } catch (e) {
+    renderizarAlunos(MOCK.alunos, "lista-alunos");
+    renderizarAlunos(MOCK.alunos, "lista-alunos-dashboard", 5);
+    mostrarAvisoDisponibilidade();
+  }
+
+  // Avaliações
+  try {
+    var avaliacoes = await apiGet("/mentor/avaliacoes");
+    renderizarAvaliacoes(avaliacoes);
+  } catch (e) {
+    renderizarAvaliacoes(MOCK.avaliacoes);
+    mostrarAvisoDisponibilidade();
+  }
+
+  // Mensagens (sem endpoint especificado — usa mock)
+  renderizarMensagens(MOCK.mensagens);
+
+  // Relatórios (sem endpoint especificado — usa mock)
+  renderizarRelatorios(MOCK.relatorios);
+}
+
+/* Exibe um aviso discreto de "dados não disponíveis" no dashboard */
+function mostrarAvisoDisponibilidade() {
+  // Evita duplicar o aviso
+  if (document.getElementById("aviso-indisponibilidade")) return;
+  var sub = document.querySelector("#secao-dashboard .subtitulo");
+  if (!sub) return;
+  var aviso = document.createElement("p");
+  aviso.id = "aviso-indisponibilidade";
+  aviso.className = "aviso-indisponivel";
+  aviso.textContent = "dados não disponíveis — exibindo dados de exemplo";
+  sub.parentNode.insertBefore(aviso, sub.nextSibling);
+}
+
+/* ---------------------------------------------------------
+   NAVEGAÇÃO SPA (sidebar)
+   Mostra/oculta seções sem recarregar a página.
+   --------------------------------------------------------- */
+function navegarPara(secao) {
+  // Oculta todas as seções
+  var secoes = document.querySelectorAll("main.conteudo > section");
+  for (var i = 0; i < secoes.length; i++) secoes[i].classList.add("escondido");
+
+  // Mostra a seção alvo
+  var alvo = document.getElementById("secao-" + secao);
+  if (alvo) alvo.classList.remove("escondido");
+
+  // Atualiza item ativo da sidebar
+  var itens = document.querySelectorAll(".sidebar-menu li");
+  for (var j = 0; j < itens.length; j++) itens[j].classList.remove("active");
+  var ativo = document.querySelector('.sidebar-menu li[data-secao="' + secao + '"]');
+  if (ativo) ativo.classList.add("active");
+
+  // Fecha a sidebar no mobile após navegar
+  fecharSidebarMobile();
+}
+
+/* ---------------------------------------------------------
+   MODAL — Novo Curso
+   --------------------------------------------------------- */
+function abrirModalCurso() {
+  document.getElementById("modal-curso").classList.add("ativo");
+}
+function fecharModalCurso() {
+  document.getElementById("modal-curso").classList.remove("ativo");
+  document.getElementById("form-novo-curso").reset();
+}
+
+/* Submete o formulário de novo curso via POST /mentor/cursos */
+async function submeterNovoCurso(evento) {
+  evento.preventDefault();
+  var dados = {
+    titulo: document.getElementById("curso-titulo").value,
+    categoria: document.getElementById("curso-categoria").value,
+    carga_horaria: parseInt(document.getElementById("curso-carga").value, 10),
+    preco: parseFloat(document.getElementById("curso-preco").value),
+    descricao: document.getElementById("curso-descricao").value,
+    imagem_url: document.getElementById("curso-imagem").value
+  };
+
+  try {
+    await apiPost("/mentor/cursos", dados);
+    alert("Curso publicado com sucesso!");
+    fecharModalCurso();
+    // Recarrega a lista de cursos
+    try {
+      var cursos = await apiGet("/mentor/cursos");
+      renderizarCursos(cursos, "lista-cursos");
+      renderizarCursos(cursos, "lista-cursos-dashboard");
+    } catch (e) {
+      renderizarCursos(MOCK.cursos, "lista-cursos");
+      renderizarCursos(MOCK.cursos, "lista-cursos-dashboard");
+    }
+  } catch (e) {
+    // Em caso de erro, adiciona localmente (demonstração)
+    var novoCurso = {
+      id: Date.now(),
+      titulo: dados.titulo,
+      descricao: dados.descricao,
+      status: "revisao",
+      categoria: dados.categoria,
+      preco: dados.preco,
+      alunos: 0,
+      conclusao: 0,
+      nota: 0
+    };
+    MOCK.cursos.unshift(novoCurso);
+    renderizarCursos(MOCK.cursos, "lista-cursos");
+    renderizarCursos(MOCK.cursos, "lista-cursos-dashboard");
+    alert("Curso salvo localmente (API indisponível).");
+    fecharModalCurso();
+  }
+}
+
+/* ---------------------------------------------------------
+   CONFIGURAÇÕES / PERFIL — ações simples (demonstração)
+   --------------------------------------------------------- */
+function salvarConfiguracoes() {
+  alert("Configurações salvas com sucesso!");
+}
+function salvarPerfil() {
+  alert("Perfil atualizado com sucesso!");
+}
+
+/* ---------------------------------------------------------
+   SIDEBAR MOBILE
+   --------------------------------------------------------- */
+function abrirSidebarMobile() {
+  document.getElementById("sidebar").classList.add("aberta");
+}
+function fecharSidebarMobile() {
+  document.getElementById("sidebar").classList.remove("aberta");
+}
+
+/* ---------------------------------------------------------
+   INICIALIZAÇÃO
+   --------------------------------------------------------- */
+document.addEventListener("DOMContentLoaded", function () {
+  // Captura o token SSO da URL (?token=<TOKEN_SSO>) antes de qualquer
+  // chamada autenticada. Persiste no localStorage para as próximas
+  // requisições /mentor/* e recargas da página.
+  capturarTokenDaUrl();
+
+  // Atualiza o header com os dados do JWT (nome, avatar, dropdown).
+  // Roda após capturarTokenDaUrl() para garantir que o token já esteja
+  // disponível no localStorage.
+  atualizarHeader();
+
+  // Menu dropdown do usuário (avatar)
+  var dropdownToggle = document.getElementById("userDropdownToggle");
+  if (dropdownToggle) {
+    dropdownToggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      alternarDropdown();
+    });
+  }
+  var btnSair = document.getElementById("btnSair");
+  if (btnSair) btnSair.addEventListener("click", sairPainel);
+  // Itens do dropdown que navegam (Perfil / Configurações)
+  var dropItens = document.querySelectorAll(".user-dropdown .item[data-nav]");
+  for (var d = 0; d < dropItens.length; d++) {
+    dropItens[d].addEventListener("click", function (evento) {
+      evento.preventDefault();
+      fecharDropdown();
+      navegarPara(this.getAttribute("data-nav"));
+    });
+  }
+  // Fecha o dropdown ao clicar fora dele.
+  document.addEventListener("click", function (e) {
+    var userBox = document.getElementById("navbarUser");
+    if (userBox && !userBox.contains(e.target)) fecharDropdown();
+  });
+  // Fecha o dropdown com a tecla Esc.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") fecharDropdown();
+  });
+
+  // Navegação pela sidebar
+  var itensSidebar = document.querySelectorAll(".sidebar-menu li");
+  for (var i = 0; i < itensSidebar.length; i++) {
+    itensSidebar[i].addEventListener("click", function () {
+      navegarPara(this.getAttribute("data-secao"));
+    });
+  }
+
+  // Links da navbar (data-nav)
+  var linksNav = document.querySelectorAll("[data-nav]");
+  for (var j = 0; j < linksNav.length; j++) {
+    linksNav[j].addEventListener("click", function (evento) {
+      evento.preventDefault();
+      navegarPara(this.getAttribute("data-nav"));
+    });
+  }
+
+  // Botões "Novo Curso"
+  var btnNovo1 = document.getElementById("btn-novo-curso");
+  var btnNovo2 = document.getElementById("btn-novo-curso-dashboard");
+  if (btnNovo1) btnNovo1.addEventListener("click", abrirModalCurso);
+  if (btnNovo2) btnNovo2.addEventListener("click", abrirModalCurso);
+
+  // Modal — fechar
+  document.getElementById("modal-fechar").addEventListener("click", fecharModalCurso);
+  document.getElementById("modal-curso").addEventListener("click", function (e) {
+    if (e.target === this) fecharModalCurso();
+  });
+
+  // Formulário novo curso
+  document.getElementById("form-novo-curso").addEventListener("submit", submeterNovoCurso);
+
+  // Menu toggle (mobile)
+  var toggle = document.getElementById("menuToggle");
+  if (toggle) toggle.addEventListener("click", abrirSidebarMobile);
+
+  // Carrega os dados da API (com fallback para MOCK)
+  carregarDados();
+});
+</script>
+</body>
+</html>

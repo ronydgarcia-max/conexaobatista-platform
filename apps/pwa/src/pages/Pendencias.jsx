@@ -5,34 +5,34 @@ import { getCurrentUser, getPendencias, logout } from '../lib/pocketbase'
 export default function Pendencias() {
   const [pendencias, setPendencias] = useState([])
   const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState(null)
   const user = getCurrentUser()
   const navigate = useNavigate()
 
   useEffect(() => {
-    console.log('🔍 user:', user)
-    console.log('🔍 user.igreja_id:', user?.igreja_id)
-
     if (!user) {
-      console.log('❌ Usuario nao logado! Redirecionando...')
+      setErro('Usuario nao logado. Redirecionando...')
       navigate('/login')
       return
     }
 
-    if (user?.igreja_id) {
-      console.log('✅ Chamando loadPendencias...')
-      loadPendencias()
-    } else {
-      console.log('❌ igreja_id vazio! Parando loading...')
+    if (!user?.igreja_id) {
+      setErro('Usuario nao possui igreja_id. Entre em contato com o suporte.')
       setLoading(false)
+      return
     }
+
+    loadPendencias()
   }, [user])
 
   const loadPendencias = async () => {
     try {
       const items = await getPendencias(user.igreja_id)
-      setPendencias(items)
+      setPendencias(items || [])
+      setErro(null)
     } catch (err) {
       console.error('Erro ao carregar pendencias:', err)
+      setErro('Erro ao carregar pendencias: ' + (err?.message || 'Erro desconhecido'))
     } finally {
       setLoading(false)
     }
@@ -49,7 +49,7 @@ export default function Pendencias() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-batista-blue">Pendencias</h1>
-            <p className="text-sm text-gray-600">Ola, {user?.name}</p>
+            <p className="text-sm text-gray-600">Ola, {user?.name || 'visitante'}</p>
           </div>
           <button
             onClick={handleLogout}
@@ -64,6 +64,11 @@ export default function Pendencias() {
         {loading ? (
           <div className="text-center text-white">
             <p>Carregando...</p>
+          </div>
+        ) : erro ? (
+          <div className="bg-red-100 border border-red-400 text-red-700 rounded-lg shadow-md p-8 text-center">
+            <h2 className="text-xl font-bold mb-2">Ops!</h2>
+            <p>{erro}</p>
           </div>
         ) : pendencias.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">

@@ -1,7 +1,23 @@
 import PocketBase from 'pocketbase'
 
-// Usa variável de ambiente em produção, ou localhost em desenvolvimento
-const PB_URL = import.meta.env.VITE_POCKETBASE_URL || 'http://localhost:8090'
+// Detecta automaticamente a URL do PocketBase
+const getPBUrl = () => {
+  // Se houver variável explícita, usa ela
+  if (import.meta.env.VITE_POCKETBASE_URL) {
+    return import.meta.env.VITE_POCKETBASE_URL
+  }
+
+  // Em desenvolvimento local
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:8090'
+  }
+
+  // Em produção: troca "app." por "pb." no domínio
+  // app.conexaobatista.com.br → pb.conexaobatista.com.br
+  return `https://pb.${window.location.hostname.replace(/^app\./, '')}`
+}
+
+const PB_URL = getPBUrl()
 
 export const pb = new PocketBase(PB_URL)
 

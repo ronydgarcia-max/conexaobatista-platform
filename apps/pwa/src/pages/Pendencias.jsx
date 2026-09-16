@@ -9,8 +9,21 @@ export default function Pendencias() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    console.log('🔍 user:', user)
+    console.log('🔍 user.igreja_id:', user?.igreja_id)
+
+    if (!user) {
+      console.log('❌ Usuario nao logado! Redirecionando...')
+      navigate('/login')
+      return
+    }
+
     if (user?.igreja_id) {
+      console.log('✅ Chamando loadPendencias...')
       loadPendencias()
+    } else {
+      console.log('❌ igreja_id vazio! Parando loading...')
+      setLoading(false)
     }
   }, [user])
 

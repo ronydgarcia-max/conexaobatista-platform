@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCurrentUser, getPendencias, logout } from '../lib/pocketbase'
 
@@ -6,37 +6,61 @@ export default function Pendencias() {
   const [pendencias, setPendencias] = useState([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState(null)
-  const user = getCurrentUser()
+  const [user, setUser] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!user) {
+    console.log('[DIAG] Pendencias montado')
+    const currentUser = getCurrentUser()
+    console.log('[DIAG] Usuário atual:', currentUser)
+
+    if (!currentUser) {
+      console.log('[DIAG] Sem usuário, redirecionando para login')
       setErro('Usuario nao logado. Redirecionando...')
       navigate('/login')
       return
     }
 
-    if (!user?.igreja_id) {
+    setUser(currentUser)
+
+    if (!currentUser?.igreja_id) {
+      console.log('[DIAG] Usuário sem igreja_id')
       setErro('Usuario nao possui igreja_id. Entre em contato com o suporte.')
       setLoading(false)
       return
     }
 
-    loadPendencias()
-  }, [user])
+    console.log('[DIAG] Carregando pendências para igreja_id:', currentUser.igreja_id)
 
-  const loadPendencias = async () => {
-    try {
-      const items = await getPendencias(user.igreja_id)
-      setPendencias(items || [])
-      setErro(null)
-    } catch (err) {
-      console.error('Erro ao carregar pendencias:', err)
-      setErro('Erro ao carregar pendencias: ' + (err?.message || 'Erro desconhecido'))
-    } finally {
-      setLoading(false)
+    let cancelled = false
+
+    const loadPendencias = async () => {
+      try {
+        setLoading(true)
+        const items = await getPendencias(currentUser.igreja_id)
+        console.log('[DIAG] Pendências carregadas:', items?.length ?? 0, 'itens')
+        if (!cancelled) {
+          setPendencias(items || [])
+          setErro(null)
+        }
+      } catch (err) {
+        console.error('[DIAG] Erro ao carregar pendencias:', err)
+        if (!cancelled) {
+          setErro('Erro ao carregar pendencias: ' + (err?.message || 'Erro desconhecido'))
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
     }
-  }
+
+    loadPendencias()
+
+    return () => {
+      cancelled = true
+    }
+  }, [navigate])
 
   const handleLogout = () => {
     logout()

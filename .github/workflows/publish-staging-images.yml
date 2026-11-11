@@ -44,7 +44,7 @@ jobs:
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./apps/api
           file: ./apps/api/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-api:${{ inputs.image_tag }}
@@ -52,7 +52,7 @@ jobs:
       - name: Build and push PocketBase image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./apps/pocketbase
           file: ./apps/pocketbase/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-pocketbase:${{ inputs.image_tag }}

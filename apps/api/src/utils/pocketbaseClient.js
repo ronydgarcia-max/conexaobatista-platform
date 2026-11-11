@@ -1,7 +1,11 @@
-import Pocketbase from 'pocketbase';
+import PocketBase from 'pocketbase';
 import logger from './logger.js';
 
-const POCKETBASE_HOST = `http://localhost:8090`;
+const POCKETBASE_HOST = process.env.POCKETBASE_HOST;
+
+if (!POCKETBASE_HOST) {
+    throw new Error('POCKETBASE_HOST is required');
+}
 
 async function waitForHealth({ retries = 10, delayMs = 1000 } = {}) {
     for (let i = 1; i <= retries; i++) {
@@ -23,7 +27,7 @@ async function waitForHealth({ retries = 10, delayMs = 1000 } = {}) {
     throw new Error(`PocketBase health check failed after ${retries} retries`);
 }
 
-const pocketbaseClient = new Pocketbase(POCKETBASE_HOST);
+const pocketbaseClient = new PocketBase(POCKETBASE_HOST);
 
 pocketbaseClient.autoCancellation(false);
 
@@ -67,15 +71,14 @@ pocketbaseClient.beforeSend = async function (url, options) {
                 authPromise = null;
             });
         }
-        
+
         if (authPromise) {
             await authPromise;
         }
-        
+
         logger.info('PocketBase client initialized successfully');
     } catch (err) {
         logger.error('Failed to initialize PocketBase client:', err);
-
         process.exit(1);
     }
 })();

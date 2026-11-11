@@ -56,3 +56,9 @@ jobs:
           file: ./apps/pocketbase/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-pocketbase:${{ inputs.image_tag }}
+
+      - name: Verify API image manifest
+        run: docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-api:${{ inputs.image_tag }}
+
+      - name: Verify PocketBase image manifest
+        run: docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-pocketbase:${{ inputs.image_tag }}

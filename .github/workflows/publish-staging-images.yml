@@ -6,7 +6,7 @@ on:
       source_ref:
         description: Git ref or commit to build
         required: true
-        default: 5fa6129
+        default: 5fa61290ad749bef25497e73d6ced397125cc709
       image_tag:
         description: Image tag suffix
         required: true

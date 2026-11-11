@@ -1,20 +1,18 @@
-﻿# Build stage
+# Build stage
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
 # Copia package.json
 COPY package*.json ./
 
-# Instala dependências
-RUN npm ci --only=production
+# Instala dependências sem exigir package-lock.json
+RUN npm install --omit=dev
 
 # Copia o código fonte
 COPY . .
 
 # Production stage
 FROM node:20-alpine
-
 WORKDIR /app
 
 # Copia dependências e código

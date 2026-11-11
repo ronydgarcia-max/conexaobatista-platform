@@ -9,6 +9,7 @@ import { errorMiddleware } from './middleware/error.js';
 import { globalRateLimit } from './middleware/global-rate-limit.js';
 import logger from './utils/logger.js';
 import { BodyLimit } from './constants/common.js';
+import devocionalApprovalRouter from './routes/devocional-aprovacao.js';
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(express.urlencoded({
 	limit: BodyLimit,
 }));
 
+app.use('/api/v1/internal/devocional', devocionalApprovalRouter);
 app.use('/', routes());
 
 app.use(errorMiddleware);

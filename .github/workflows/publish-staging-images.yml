@@ -1,0 +1,58 @@
+name: Publish staging images
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Git ref or commit to build
+        required: true
+        default: 5fa6129
+      image_tag:
+        description: Image tag suffix
+        required: true
+        default: staging-5fa6129
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ronydgarcia-max
+
+jobs:
+  publish:
+    name: Publish API and PocketBase images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-api:${{ inputs.image_tag }}
+
+      - name: Build and push PocketBase image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/pocketbase
+          file: ./apps/pocketbase/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/conexaobatista-platform-pocketbase:${{ inputs.image_tag }}

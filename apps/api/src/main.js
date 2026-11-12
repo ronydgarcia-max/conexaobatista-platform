@@ -80,6 +80,7 @@ app.post('/api/v1/auth/session', async (req, res, next) => {
         sub: authData.record.id,
         email: authData.record.email,
         collection: authData.record.collectionName,
+        verified: Boolean(authData.record.verified),
       },
       process.env.JWT_SECRET,
       { expiresIn: '12h' },
@@ -106,6 +107,42 @@ app.post('/api/v1/auth/session', async (req, res, next) => {
     }
 
     return next(error);
+  }
+});
+
+app.get('/api/v1/me', (req, res) => {
+  const authorization = req.get('authorization') || '';
+
+  if (!authorization.startsWith('Bearer ')) {
+    return res.status(401).json({
+      error: 'MISSING_SESSION',
+      message: 'Bearer session token is required',
+    });
+  }
+
+  if (!process.env.JWT_SECRET) {
+    return res.status(503).json({
+      error: 'SESSION_NOT_CONFIGURED',
+      message: 'Session authentication is not configured',
+    });
+  }
+
+  try {
+    const claims = jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
+
+    return res.status(200).json({
+      user: {
+        id: claims.sub,
+        email: claims.email,
+        collection: claims.collection,
+        verified: Boolean(claims.verified),
+      },
+    });
+  } catch {
+    return res.status(401).json({
+      error: 'INVALID_SESSION',
+      message: 'Invalid or expired session',
+    });
   }
 });
 

@@ -16,7 +16,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
     "multer": "^2.2.0",
-    "pocketbase": "^0.27.1"
+    "pocketbase": "0.21.3"
   },
   "devDependencies": {
     "globals": "^15.14.0",

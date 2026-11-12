@@ -48,6 +48,10 @@ app.use(globalRateLimit);
 app.use(express.json({ limit: BodyLimit }));
 app.use(express.urlencoded({ extended: true, limit: BodyLimit }));
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.post('/api/v1/auth/session', async (req, res, next) => {
   const { email, password } = req.body || {};
 

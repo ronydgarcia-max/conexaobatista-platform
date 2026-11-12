@@ -34,12 +34,12 @@ pocketbaseClient.autoCancellation(false);
 let authPromise = null;
 
 pocketbaseClient.beforeSend = async function (url, options) {
-    if (url.includes('/api/collections/_superusers/auth-with-password')) {
+    if (url.includes('/api/admins/auth-with-password')) {
         return { url, options };
     }
 
     if (!pocketbaseClient.authStore.isValid && !authPromise) {
-        authPromise = pocketbaseClient.collection('_superusers').authWithPassword(
+        authPromise = pocketbaseClient.admins.authWithPassword(
             process.env.PB_SUPERUSER_EMAIL,
             process.env.PB_SUPERUSER_PASSWORD,
         ).finally(() => {
@@ -64,7 +64,7 @@ pocketbaseClient.beforeSend = async function (url, options) {
         await waitForHealth();
 
         if (!pocketbaseClient.authStore.isValid && !authPromise) {
-            authPromise = pocketbaseClient.collection('_superusers').authWithPassword(
+            authPromise = pocketbaseClient.admins.authWithPassword(
                 process.env.PB_SUPERUSER_EMAIL,
                 process.env.PB_SUPERUSER_PASSWORD,
             ).finally(() => {

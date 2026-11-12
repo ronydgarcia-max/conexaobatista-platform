@@ -12,8 +12,10 @@ import { globalRateLimit } from './middleware/global-rate-limit.js';
 import logger from './utils/logger.js';
 import { BodyLimit } from './constants/common.js';
 import devocionalApprovalRouter from './routes/devocional-aprovacao.js';
+import { pocketbaseClient } from './utils/pocketbaseClient.js';
 
 const app = express();
+const preferenceValues = new Set(['amizade', 'namoro', 'casamento', 'networking', 'estudo']);
 
 app.set('trust proxy', true);
 
@@ -143,6 +145,93 @@ app.get('/api/v1/me', (req, res) => {
       error: 'INVALID_SESSION',
       message: 'Invalid or expired session',
     });
+  }
+});
+
+function getSessionClaims(req) {
+  const authorization = req.get('authorization') || '';
+
+  if (!authorization.startsWith('Bearer ') || !process.env.JWT_SECRET) {
+    return null;
+  }
+
+  try {
+    return jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
+
+app.get('/api/v1/preferencias', async (req, res, next) => {
+  const claims = getSessionClaims(req);
+
+  if (!claims?.sub) {
+    return res.status(401).json({
+      error: 'INVALID_SESSION',
+      message: 'Valid session is required',
+    });
+  }
+
+  try {
+    const profile = await pocketbaseClient
+      .collection('rel_perfis')
+      .getFirstListItem(`owner="${claims.sub}"`);
+
+    return res.status(200).json({
+      preferencias: Array.isArray(profile.preferencias) ? profile.preferencias : [],
+    });
+  } catch (error) {
+    if (error?.status === 404) {
+      return res.status(200).json({ preferencias: [] });
+    }
+
+    return next(error);
+  }
+});
+
+app.put('/api/v1/preferencias', async (req, res, next) => {
+  const claims = getSessionClaims(req);
+
+  if (!claims?.sub) {
+    return res.status(401).json({
+      error: 'INVALID_SESSION',
+      message: 'Valid session is required',
+    });
+  }
+
+  const preferencias = req.body?.preferencias;
+
+  if (!Array.isArray(preferencias) || preferencias.length > 5 || preferencias.some((value) => typeof value !== 'string' || !preferenceValues.has(value)) || new Set(preferencias).size !== preferencias.length) {
+    return res.status(400).json({
+      error: 'INVALID_PREFERENCES',
+      message: 'preferencias must contain up to five unique allowed values',
+      allowedValues: [...preferenceValues],
+    });
+  }
+
+  try {
+    const collection = pocketbaseClient.collection('rel_perfis');
+    let profile;
+
+    try {
+      profile = await collection.getFirstListItem(`owner="${claims.sub}"`);
+      profile = await collection.update(profile.id, { preferencias });
+    } catch (error) {
+      if (error?.status !== 404) {
+        throw error;
+      }
+
+      profile = await collection.create({
+        owner: claims.sub,
+        preferencias,
+      });
+    }
+
+    return res.status(200).json({
+      preferencias: Array.isArray(profile.preferencias) ? profile.preferencias : [],
+    });
+  } catch (error) {
+    return next(error);
   }
 });
 

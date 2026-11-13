@@ -1,10 +1,11 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-migrate((app) => {
+migrate((db) => {
+  const dao = new Dao(db);
   let relPerfis;
 
   try {
-    relPerfis = app.findCollectionByNameOrId("rel_perfis");
+    relPerfis = dao.findCollectionByNameOrId("rel_perfis");
   } catch (_) {
     relPerfis = null;
   }
@@ -13,7 +14,7 @@ migrate((app) => {
     return;
   }
 
-  const users = app.findCollectionByNameOrId("users");
+  const users = dao.findCollectionByNameOrId("users");
 
   relPerfis = new Collection({
     type: "base",
@@ -53,11 +54,13 @@ migrate((app) => {
     ],
   });
 
-  app.save(relPerfis);
-}, (app) => {
+  return dao.saveCollection(relPerfis);
+}, (db) => {
+  const dao = new Dao(db);
+
   try {
-    const relPerfis = app.findCollectionByNameOrId("rel_perfis");
-    app.delete(relPerfis);
+    const relPerfis = dao.findCollectionByNameOrId("rel_perfis");
+    return dao.deleteCollection(relPerfis);
   } catch (_) {
     // A coleção pode não existir se a migração não tiver sido aplicada.
   }

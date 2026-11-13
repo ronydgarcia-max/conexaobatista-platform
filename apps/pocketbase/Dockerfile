@@ -19,9 +19,7 @@ COPY pb_migrations_staging /pb/bundled_migrations
 
 EXPOSE 8080
 
-# Volume persistente somente para os dados do PocketBase
-VOLUME ["/pb/pb_data"]
-
+# O volume de dados é montado explicitamente pelo serviço do staging.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 

@@ -23,32 +23,26 @@ migrate((app) => {
     createRule: "@request.auth.id != '' && owner = @request.auth.id",
     updateRule: "@request.auth.id != '' && owner = @request.auth.id",
     deleteRule: "@request.auth.id != '' && owner = @request.auth.id",
-    schema: [
+    fields: [
       {
         name: "owner",
         type: "relation",
         required: true,
-        options: {
-          collectionId: users.id,
-          cascadeDelete: true,
-          maxSelect: 1,
-        },
+        maxSelect: 1,
+        collectionId: users.id,
+        cascadeDelete: true,
       },
       {
         name: "preferencias",
         type: "select",
-        options: {
-          maxSelect: 5,
-          values: ["amizade", "namoro", "casamento", "networking", "estudo"],
-        },
+        maxSelect: 5,
+        values: ["amizade", "namoro", "casamento", "networking", "estudo"],
       },
       {
         name: "visibilidade",
         type: "select",
-        options: {
-          maxSelect: 1,
-          values: ["publico", "privado"],
-        },
+        maxSelect: 1,
+        values: ["publico", "privado"],
       },
     ],
   });

@@ -13,9 +13,9 @@ RUN unzip /tmp/pb.zip -d /pb/ && \
     rm /tmp/pb.zip && \
     chmod +x /pb/pocketbase
 
-# Empacota hooks e migrações na imagem, fora dos volumes persistentes
-COPY pb_hooks /pb/bundled_hooks
-COPY pb_migrations /pb/bundled_migrations
+# Conjunto mínimo compatível para o staging do Devocional
+COPY pb_hooks_staging /pb/bundled_hooks
+COPY pb_migrations_staging /pb/bundled_migrations
 
 EXPOSE 8080
 

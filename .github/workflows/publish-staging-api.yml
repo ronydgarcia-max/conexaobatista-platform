@@ -1,0 +1,47 @@
+name: Publish staging API image
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Commit, branch or tag to build"
+        required: true
+        type: string
+      image_tag:
+        description: "Image tag to publish"
+        required: true
+        type: string
+
+jobs:
+  publish-api:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/ronydgarcia-max/conexaobatista-platform-api:${{ inputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

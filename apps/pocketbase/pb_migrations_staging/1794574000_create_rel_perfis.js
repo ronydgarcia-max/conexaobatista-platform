@@ -1,11 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-migrate((db) => {
-  const dao = new Dao(db);
+migrate((app) => {
   let relPerfis;
 
   try {
-    relPerfis = dao.findCollectionByNameOrId("rel_perfis");
+    relPerfis = app.findCollectionByNameOrId("rel_perfis");
   } catch (_) {
     relPerfis = null;
   }
@@ -14,7 +13,7 @@ migrate((db) => {
     return;
   }
 
-  const users = dao.findCollectionByNameOrId("users");
+  const users = app.findCollectionByNameOrId("users");
 
   relPerfis = new Collection({
     type: "base",
@@ -24,43 +23,41 @@ migrate((db) => {
     createRule: "@request.auth.id != '' && owner = @request.auth.id",
     updateRule: "@request.auth.id != '' && owner = @request.auth.id",
     deleteRule: "@request.auth.id != '' && owner = @request.auth.id",
-    fields: [
+    schema: [
       {
         name: "owner",
         type: "relation",
         required: true,
-        maxSelect: 1,
-        collectionId: users.id,
-        cascadeDelete: true,
+        options: {
+          collectionId: users.id,
+          cascadeDelete: true,
+          maxSelect: 1,
+        },
       },
       {
         name: "preferencias",
         type: "select",
-        maxSelect: 5,
-        values: ["amizade", "namoro", "casamento", "networking", "estudo"],
+        options: {
+          maxSelect: 5,
+          values: ["amizade", "namoro", "casamento", "networking", "estudo"],
+        },
       },
       {
-        name: "created",
-        type: "autodate",
-        onCreate: true,
-        onUpdate: false,
-      },
-      {
-        name: "updated",
-        type: "autodate",
-        onCreate: true,
-        onUpdate: true,
+        name: "visibilidade",
+        type: "select",
+        options: {
+          maxSelect: 1,
+          values: ["publico", "privado"],
+        },
       },
     ],
   });
 
-  return dao.saveCollection(relPerfis);
-}, (db) => {
-  const dao = new Dao(db);
-
+  return app.save(relPerfis);
+}, (app) => {
   try {
-    const relPerfis = dao.findCollectionByNameOrId("rel_perfis");
-    return dao.deleteCollection(relPerfis);
+    const relPerfis = app.findCollectionByNameOrId("rel_perfis");
+    return app.delete(relPerfis);
   } catch (_) {
     // A coleção pode não existir se a migração não tiver sido aplicada.
   }
